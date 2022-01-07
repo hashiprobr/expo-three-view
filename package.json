@@ -1,6 +1,6 @@
 {
   "name": "@hashiprobr/expo-three-view",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "TODO",
   "keywords": [
     "JavaScript",
@@ -34,6 +34,8 @@
     "expo-three": "^6.0.1",
     "react": "^17.0.0",
     "react-native": ">=0.64.0",
-    "react-native-gesture-handler": "^2.1.0"
+    "react-native-gesture-handler": "<2.0.0",
+    "react-native-reanimated": "^2.3.1",
+    "three": "^0.127.0"
   }
 }
