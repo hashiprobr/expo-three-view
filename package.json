@@ -1,6 +1,6 @@
 {
   "name": "@hashiprobr/expo-three-view",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "TODO",
   "keywords": [
     "JavaScript",
@@ -30,12 +30,12 @@
   "peerDependencies": {
     "@hashiprobr/react-use-mount-and-update": "^1.0.3",
     "@hashiprobr/react-use-refs": "^1.0.9",
-    "expo-gl": "^11.1.1",
+    "expo-gl": "^11.0.3",
     "expo-three": "^6.0.1",
-    "react": "^17.0.0",
-    "react-native": ">=0.64.0",
-    "react-native-gesture-handler": "<2.0.0",
-    "react-native-reanimated": "^2.3.1",
-    "three": "^0.127.0"
+    "react": "^17.0.1",
+    "react-native": ">=0.64.3",
+    "react-native-gesture-handler": "^1.10.2",
+    "react-native-reanimated": "^2.2.0",
+    "three": ">=0.136.0"
   }
 }

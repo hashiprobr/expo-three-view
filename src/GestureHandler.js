@@ -1,17 +1,17 @@
 import React from 'react';
 
-import { View } from 'react-native';
-
-import { PanGestureHandler, PinchGestureHandler } from 'react-native-gesture-handler';
+import { GestureHandlerRootView, PanGestureHandler, PinchGestureHandler } from 'react-native-gesture-handler';
 
 export default class GestureHandler extends React.Component {
     constructor(props) {
         super(props);
     }
+
     render() {
         const { onPanStateChange, onPanEvent, onPinchEvent, children, ...props } = this.props;
+
         return (
-            <View
+            <GestureHandlerRootView
                 {...props}
             >
                 <PanGestureHandler
@@ -24,7 +24,7 @@ export default class GestureHandler extends React.Component {
                         {children}
                     </PinchGestureHandler>
                 </PanGestureHandler>
-            </View>
+            </GestureHandlerRootView>
         );
     }
 }

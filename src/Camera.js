@@ -5,6 +5,7 @@ export default class Camera extends THREE.PerspectiveCamera {
         super();
         this.target = target;
     }
+
     lookAt(x, y, z) {
         super.lookAt(x, y, z);
         if (x.isVector3) {

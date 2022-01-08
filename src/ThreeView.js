@@ -29,28 +29,77 @@ export default function ThreeView(props) {
         frame: 0,
     });
 
+    function bundle() {
+        return {
+            renderer: refs.renderer,
+            scene: refs.scene,
+            camera: refs.camera,
+            canvas: {
+                refresh,
+                play,
+                pause,
+            },
+        };
+    }
+
     function updateCamera(aspect) {
         refs.camera.aspect = aspect;
         refs.camera.updateProjectionMatrix();
     }
 
-    function updateRenderer(renderer) {
-        refs.renderer = renderer;
-        if (props.onUpdate) {
-            props.onUpdate(renderer);
+    function createRenderer(gl) {
+        refs.renderer = new Renderer({ gl });
+        refs.renderer.setSize(gl.drawingBufferWidth, gl.drawingBufferHeight);
+        if (props.onCreate) {
+            props.onCreate(bundle());
         }
     }
 
-    function createRenderer(gl) {
-        const renderer = new Renderer({ gl });
-        renderer.setSize(refs.width, refs.height);
-        updateRenderer(renderer);
+    function render() {
+        if (refs.renderer) {
+            refs.renderer.render(refs.scene, refs.camera);
+            refs.context.endFrameEXP();
+        }
+    }
+
+    function refresh() {
+        function renderImage() {
+            render();
+            refs.frame = 0;
+        }
+        if (!refs.frame) {
+            refs.frame = requestAnimationFrame(renderImage);
+        }
+    }
+
+    function play(update) {
+        function renderFrame() {
+            refs.frame = requestAnimationFrame(renderFrame);
+            update();
+            render();
+        }
+        if (!refs.frame) {
+            if (refs.frame) {
+                cancelAnimationFrame(refs.frame);
+            }
+            renderFrame();
+        }
+    }
+
+    function pause() {
+        if (refs.frame) {
+            cancelAnimationFrame(refs.frame);
+            refs.frame = 0;
+        }
     }
 
     function destroyRenderer() {
         if (refs.renderer) {
             refs.renderer.dispose();
-            updateRenderer(null);
+            refs.renderer = null;
+            if (props.onDestroy) {
+                props.onDestroy(bundle());
+            }
         }
     }
 
@@ -58,29 +107,6 @@ export default function ThreeView(props) {
         const success = await GLView.destroyContextAsync(gl);
         if (!success) {
             throw new Error('Could not destroy context');
-        }
-    }
-
-    function render(camera) {
-        if (refs.renderer) {
-            refs.renderer.render(refs.scene, camera);
-            refs.renderer.getContext().endFrameEXP();
-        }
-    }
-
-    function startAnimation(update) {
-        function renderFrame() {
-            refs.frame = requestAnimationFrame(renderFrame);
-            update();
-            render(refs.camera);
-        }
-        renderFrame();
-    }
-
-    function stopAnimation() {
-        if (refs.frame) {
-            cancelAnimationFrame(refs.frame);
-            refs.frame = 0;
         }
     }
 
@@ -120,21 +146,20 @@ export default function ThreeView(props) {
     }
 
     function zoom(forward) {
-        const camera = refs.camera;
-        const direction = refs.target.clone().sub(camera.position);
+        const direction = refs.target.clone().sub(refs.camera.position);
         if (forward) {
-            const distance = direction.length() - camera.near;
+            const distance = direction.length() - refs.camera.near;
             if (distance > 0) {
                 direction.normalize();
                 if (distance < 1) {
                     direction.multiplyScalar(distance);
                 }
-                camera.position.add(direction);
+                refs.camera.position.add(direction);
             }
         } else {
-            camera.position.sub(direction.normalize());
+            refs.camera.position.sub(direction.normalize());
         }
-        render(camera);
+        refresh();
     }
 
     function onPanStateChange({ nativeEvent }) {
@@ -163,17 +188,15 @@ export default function ThreeView(props) {
 
     function onPanEvent({ nativeEvent }) {
         if (nativeEvent.state === State.ACTIVE) {
-            const camera = refs.camera;
-            const pan = refs.pan;
-            if (pan.modifier === null) {
-                pan.modifier = refs.shift || nativeEvent.numberOfPointers > 1;
+            if (refs.pan.modifier === null) {
+                refs.pan.modifier = refs.shift || nativeEvent.numberOfPointers > 1;
             }
-            if (pan.modifier) {
-                translate(camera, pan, nativeEvent);
+            if (refs.pan.modifier) {
+                translate(refs.camera, refs.pan, nativeEvent);
             } else {
-                rotate(camera, pan, nativeEvent);
+                rotate(refs.camera, refs.pan, nativeEvent);
             }
-            render(camera);
+            refresh();
         }
     }
 
@@ -201,11 +224,14 @@ export default function ThreeView(props) {
         }
         if (changed) {
             if (refs.width > 0 && refs.height > 0) {
-                updateCamera(refs.width / refs.height);
+                const gl = refs.context;
+                updateCamera(gl.drawingBufferWidth / gl.drawingBufferHeight);
                 if (refs.renderer) {
-                    refs.renderer.setSize(refs.width, refs.height);
+                    refs.renderer.setSize(gl.drawingBufferWidth, gl.drawingBufferHeight);
+                    if (props.onResize) {
+                        props.onResize(bundle());
+                    }
                 } else {
-                    const gl = refs.context;
                     if (gl) {
                         createRenderer(gl);
                     }
@@ -238,16 +264,6 @@ export default function ThreeView(props) {
     }
 
     useMount(() => {
-        if (props.onMount) {
-            props.onMount({
-                scene: refs.scene,
-                camera: refs.camera,
-                render: () => render(refs.camera),
-                startAnimation,
-                stopAnimation,
-                dispose,
-            });
-        }
         if (Platform.OS === 'web') {
             const onKeydown = (event) => {
                 if (event.key === 'Shift') {
