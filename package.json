@@ -1,6 +1,6 @@
 {
   "name": "@hashiprobr/expo-three-view",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "TODO",
   "keywords": [
     "JavaScript",
@@ -30,6 +30,7 @@
   "peerDependencies": {
     "@hashiprobr/react-use-mount-and-update": "^1.0.3",
     "@hashiprobr/react-use-refs": "^1.0.9",
+    "expo": "^43.0.5",
     "expo-gl": "^11.0.3",
     "expo-three": "^6.0.1",
     "react": "^17.0.1",
