@@ -1,3 +1,5 @@
+import { Vector3, Spherical, Quaternion, Scene } from 'three';
+
 import React from 'react';
 
 import { Platform } from 'react-native';
@@ -5,7 +7,7 @@ import { Platform } from 'react-native';
 import { State } from 'react-native-gesture-handler';
 
 import { GLView } from 'expo-gl';
-import { Renderer, THREE } from 'expo-three';
+import { Renderer } from 'expo-three';
 
 import useRefs from '@hashiprobr/react-use-refs';
 import { useMount } from '@hashiprobr/react-use-mount-and-update';
@@ -14,14 +16,14 @@ import Camera from './Camera';
 import GestureHandler from './GestureHandler';
 
 export default function ThreeView(props) {
-    const defaultTarget = new THREE.Vector3();
+    const defaultTarget = new Vector3();
 
     const refs = useRefs({
         width: 0,
         height: 0,
         context: null,
         renderer: null,
-        scene: new THREE.Scene(),
+        scene: new Scene(),
         camera: new Camera(defaultTarget),
         target: defaultTarget,
         pan: null,
@@ -91,11 +93,11 @@ export default function ThreeView(props) {
         if (props.onDispose) {
             props.onDispose();
         }
+        stop();
         refs.renderer.dispose();
     }
 
     function destroyRenderer() {
-        stop();
         if (refs.renderer) {
             disposeRenderer();
             refs.renderer = null;
@@ -142,7 +144,7 @@ export default function ThreeView(props) {
         refs.camera.position.setFromSpherical(spherical)
             .applyQuaternion(unrotation)
             .add(refs.target);
-        refs.lookAt(refs.target);
+        refs.camera.lookAt(refs.target);
     }
 
     function zoom(forward) {
@@ -166,14 +168,14 @@ export default function ThreeView(props) {
         if (nativeEvent.state === State.BEGAN) {
             const camera = refs.camera;
             const vector = camera.position.clone().sub(refs.target);
-            const rotation = new THREE.Quaternion();
+            const rotation = new Quaternion();
             const pan = {
                 modifier: null,
                 absolute: camera.position.clone(),
                 target: refs.target.clone(),
-                baseX: new THREE.Vector3(1, 0, 0),
-                baseY: new THREE.Vector3(0, 1, 0),
-                relative: new THREE.Spherical(),
+                baseX: new Vector3(1, 0, 0),
+                baseY: new Vector3(0, 1, 0),
+                relative: new Spherical(),
             };
             rotation.setFromUnitVectors(camera.up, pan.baseY);
             pan.baseX.applyQuaternion(camera.quaternion);

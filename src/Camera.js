@@ -1,6 +1,6 @@
-import { THREE } from 'expo-three';
+import { PerspectiveCamera } from 'three';
 
-export default class Camera extends THREE.PerspectiveCamera {
+export default class Camera extends PerspectiveCamera {
     constructor(target) {
         super();
         this.target = target;
