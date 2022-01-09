@@ -87,13 +87,17 @@ export default function ThreeView(props) {
         }
     }
 
+    function disposeRenderer() {
+        if (props.onDispose) {
+            props.onDispose();
+        }
+        refs.renderer.dispose();
+    }
+
     function destroyRenderer() {
         stop();
         if (refs.renderer) {
-            if (props.onDestroy) {
-                props.onDestroy();
-            }
-            refs.renderer.dispose();
+            disposeRenderer();
             refs.renderer = null;
         }
         if (refs.camera.aspect !== 1) {
@@ -117,12 +121,11 @@ export default function ThreeView(props) {
         }
     }
 
-    function translate(camera, pan, event) {
-        const { absolute, target, baseX, baseY, scale } = pan;
-        const { translationX, translationY } = event;
+    function translate(translationX, translationY) {
+        const { absolute, target, baseX, baseY, scale } = refs.pan;
         const deltaX = baseX.clone().multiplyScalar(translationX * scale);
         const deltaY = baseY.clone().multiplyScalar(translationY * scale);
-        camera.position.copy(absolute)
+        refs.camera.position.copy(absolute)
             .sub(deltaX)
             .add(deltaY);
         refs.target.copy(target)
@@ -130,17 +133,16 @@ export default function ThreeView(props) {
             .add(deltaY);
     }
 
-    function rotate(camera, pan, event) {
-        const { relative, angle, unrotation } = pan;
-        const { translationX, translationY } = event;
+    function rotate(translationX, translationY) {
+        const { relative, angle, unrotation } = refs.pan;
         const spherical = relative.clone();
         spherical.theta -= translationX * angle;
         spherical.phi -= translationY * angle;
         spherical.makeSafe();
-        camera.position.setFromSpherical(spherical)
+        refs.camera.position.setFromSpherical(spherical)
             .applyQuaternion(unrotation)
             .add(refs.target);
-        camera.lookAt(refs.target);
+        refs.lookAt(refs.target);
     }
 
     function zoom(forward) {
@@ -189,10 +191,11 @@ export default function ThreeView(props) {
             if (refs.pan.modifier === null) {
                 refs.pan.modifier = refs.shift || nativeEvent.numberOfPointers > 1;
             }
+            const { translationX, translationY } = nativeEvent;
             if (refs.pan.modifier) {
-                translate(refs.camera, refs.pan, nativeEvent);
+                translate(translationX, translationY);
             } else {
-                rotate(refs.camera, refs.pan, nativeEvent);
+                rotate(translationX, translationY);
             }
             refresh();
         }
@@ -252,7 +255,7 @@ export default function ThreeView(props) {
                 if (refs.width > 0 && refs.height > 0) {
                     updateCamera(gl.drawingBufferWidth / gl.drawingBufferHeight);
                     if (refs.renderer) {
-                        refs.renderer.dispose();
+                        disposeRenderer();
                     }
                     createRenderer(gl);
                 }
@@ -281,9 +284,9 @@ export default function ThreeView(props) {
             addEventListener('keydown', onKeydown);
             addEventListener('keyup', onKeyup);
             return async () => {
+                await destroy();
                 removeEventListener('keyup', onKeyup);
                 removeEventListener('keydown', onKeydown);
-                await destroy();
             };
         } else {
             return destroy;
