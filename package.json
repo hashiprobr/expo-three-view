@@ -1,7 +1,7 @@
 {
   "name": "@hashiprobr/expo-three-view",
-  "version": "1.0.7",
-  "description": "TODO",
+  "version": "1.0.8",
+  "description": "An Expo Component for Three.js visualization with auto-resizing and built-in orbit controls",
   "keywords": [
     "JavaScript",
     "React",
