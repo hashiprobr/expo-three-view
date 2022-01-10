@@ -267,7 +267,7 @@ export default function ThreeView(props) {
         if (refs.context !== gl) {
             if (gl) {
                 if (refs.width > 0 && refs.height > 0) {
-                    requestAnimationFrame(() => {
+                    requestAnimationFrame(async () => {
                         const [glWidth, glHeight] = getSize(gl);
                         updateCamera(glWidth / glHeight);
                         if (refs.renderer) {
