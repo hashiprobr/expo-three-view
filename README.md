@@ -1,19 +1,19 @@
 expo-three-view
 ===============
 
-**An Expo Component for [Three.js]() visualization with auto-resizing and built-in
-orbit controls**
+**An Expo Component for [Three.js](https://threejs.org/) visualization with
+auto-resizing and built-in orbit controls**
 
 The `ThreeView` component simplifies the usage of
 [Three.js](https://threejs.org/) for simple 3D visualization. It automatically
 ajusts the camera aspect and context dimensions on resize and offers orbit
 controls out of the box:
 
-* *rotate:* drag (all platforms);
+* *rotate:* drag with one finger (Android or iOS) or mouse (web);
 
-* *rotate:* drag with two fingers (Android or iOS) or shift (web);
+* *pan:* drag with two fingers (Android or iOS) or shift+mouse (web);
 
-* *zoom:* pinch (Android or iOS) and mouse wheel (web).
+* *zoom:* pinch (Android or iOS) or mouse wheel (web).
 
 The implementation was heavily inspired by [Evan
 Bacon](https://github.com/EvanBacon)'s
