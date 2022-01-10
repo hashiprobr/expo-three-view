@@ -71,7 +71,7 @@ module.exports = async function (env, argv) {
         babel: {
             dangerouslyAddModulePathsToTranspile: [
                 '@hashiprobr/expo-three-view',
-            ]
+            ],
         },
     }, argv);
     return config;
