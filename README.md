@@ -16,7 +16,8 @@ controls out of the box:
 * *zoom:* pinch (Android or iOS) and mouse wheel (web).
 
 The implementation was heavily inspired by [Evan
-Bacon](https://github.com/EvanBacon)'s [expo-three-orbit-controls].
+Bacon](https://github.com/EvanBacon)'s
+[expo-three-orbit-controls](https://github.com/EvanBacon/expo-three-orbit-controls).
 
 
 Peer dependencies
