@@ -1,6 +1,6 @@
 {
   "name": "@hashiprobr/expo-three-view",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "An Expo Component for Three.js visualization with auto-resizing and built-in orbit controls",
   "keywords": [
     "JavaScript",
@@ -28,8 +28,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "peerDependencies": {
-    "@hashiprobr/react-use-mount-and-update": "^1.0.3",
-    "@hashiprobr/react-use-refs": "^1.0.9",
+    "@hashiprobr/react-use-mount-and-update": "^1.0.4",
+    "@hashiprobr/react-use-refs": "^1.0.10",
     "expo": "^43.0.5",
     "expo-gl": "^11.0.3",
     "expo-three": "^6.0.1",

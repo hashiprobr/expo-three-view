@@ -25,8 +25,8 @@ Peer dependencies
 
 ``` json
 {
-    "@hashiprobr/react-use-mount-and-update": "^1.0.3",
-    "@hashiprobr/react-use-refs": "^1.0.9",
+    "@hashiprobr/react-use-mount-and-update": "^1.0.4",
+    "@hashiprobr/react-use-refs": "^1.0.10",
     "expo": "^43.0.5",
     "expo-gl": "^11.0.3",
     "expo-three": "^6.0.1",
