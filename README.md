@@ -54,7 +54,7 @@ module.exports = async function (env, argv) {
         ...env,
         babel: {
             dangerouslyAddModulePathsToTranspile: [
-                '@hashiprobr/expo-pdf-reader',
+                '@hashiprobr/expo-three-view',
             ]
         },
     }, argv);
@@ -126,4 +126,226 @@ onDispose
 
 This function is called whenever the renderer is disposed. This happens either
 during unmount or when the context is recreated for whatever reason. The most
-common usage is executing cleanup tasks.
+common usage is executing clean up tasks.
+
+
+Example
+-------
+
+Simple example without animation:
+
+``` js
+import {
+    AmbientLight,
+    BoxBufferGeometry,
+    Fog,
+    GridHelper,
+    Mesh,
+    MeshStandardMaterial,
+    PointLight,
+    SpotLight,
+} from 'three';
+
+import React from 'react';
+
+import ThreeView from '@hashiprobr/expo-three-view';
+
+export default function MyComponent() {
+    let refresh;
+
+    function onCreate({ renderer, scene, camera, canvas }) {
+        const sceneColor = 0x6ad6f0;
+        renderer.setClearColor(sceneColor);
+
+        scene.fog = new Fog(sceneColor, 1, 10000);
+        scene.add(new GridHelper(10, 10));
+
+        const ambientLight = new AmbientLight(0x101010);
+        scene.add(ambientLight);
+
+        const pointLight = new PointLight(0xffffff, 2, 1000, 1);
+        pointLight.position.set(0, 200, 200);
+        scene.add(pointLight);
+
+        const spotLight = new SpotLight(0xffffff, 0.5);
+        spotLight.position.set(0, 500, 100);
+        spotLight.lookAt(scene.position);
+        scene.add(spotLight);
+
+        const geometry = new BoxBufferGeometry(1.0, 1.0, 1.0);
+        const material = new MeshStandardMaterial({ color: 0xff0000 });
+        const cube = new Mesh(geometry, material);
+        scene.add(cube);
+
+        camera.position.set(2, 5, 5);
+        camera.lookAt(cube.position);
+
+        refresh = canvas.refresh;
+        refresh();
+    }
+
+    function onResize() {
+        refresh();
+    }
+
+    return (
+        <ThreeView
+            style={{
+                flexGrow: 1,
+            }}
+            onCreate={onCreate}
+            onResize={onResize}
+        />
+    );
+}
+```
+
+Simple example with animation:
+
+``` js
+import {
+    AmbientLight,
+    BoxBufferGeometry,
+    Fog,
+    GridHelper,
+    Mesh,
+    MeshStandardMaterial,
+    PointLight,
+    SpotLight,
+} from 'three';
+
+import React from 'react';
+
+import ThreeView from '@hashiprobr/expo-three-view';
+
+export default function MyComponent() {
+    function onCreate({ renderer, scene, camera, canvas }) {
+        const sceneColor = 0x6ad6f0;
+        renderer.setClearColor(sceneColor);
+
+        scene.fog = new Fog(sceneColor, 1, 10000);
+        scene.add(new GridHelper(10, 10));
+
+        const ambientLight = new AmbientLight(0x101010);
+        scene.add(ambientLight);
+
+        const pointLight = new PointLight(0xffffff, 2, 1000, 1);
+        pointLight.position.set(0, 200, 200);
+        scene.add(pointLight);
+
+        const spotLight = new SpotLight(0xffffff, 0.5);
+        spotLight.position.set(0, 500, 100);
+        spotLight.lookAt(scene.position);
+        scene.add(spotLight);
+
+        const geometry = new BoxBufferGeometry(1.0, 1.0, 1.0);
+        const material = new MeshStandardMaterial({ color: 0xff0000 });
+        const cube = new Mesh(geometry, material);
+        scene.add(cube);
+
+        camera.position.set(2, 5, 5);
+        camera.lookAt(cube.position);
+
+        canvas.play(() => {
+            cube.rotation.y += 0.05;
+            cube.rotation.x += 0.025;
+        });
+    }
+
+    return (
+        <ThreeView
+            style={{
+                flexGrow: 1,
+            }}
+            onCreate={onCreate}
+        />
+    );
+}
+```
+
+Slightly more complex example with animation, that considers the possibility of
+losing the context and cleans up on unmount:
+
+``` js
+import {
+    AmbientLight,
+    BoxBufferGeometry,
+    Fog,
+    GridHelper,
+    Mesh,
+    MeshStandardMaterial,
+    PointLight,
+    SpotLight,
+} from 'three';
+
+import React, { useRef, useEffect } from 'react';
+
+import ThreeView from '@hashiprobr/expo-three-view';
+
+export default function MyComponent() {
+    const ref = useRef(null);
+
+    function onCreate({ renderer, scene, camera, canvas }) {
+        const sceneColor = 0x6ad6f0;
+        renderer.setClearColor(sceneColor);
+
+        let update;
+
+        if (ref.current) {
+            update = ref.current.update;
+        } else {
+            camera.position.set(2, 5, 5);
+
+            scene.fog = new Fog(sceneColor, 1, 10000);
+            scene.add(new GridHelper(10, 10));
+
+            const ambientLight = new AmbientLight(0x101010);
+            scene.add(ambientLight);
+
+            const pointLight = new PointLight(0xffffff, 2, 1000, 1);
+            pointLight.position.set(0, 200, 200);
+            scene.add(pointLight);
+
+            const spotLight = new SpotLight(0xffffff, 0.5);
+            spotLight.position.set(0, 500, 100);
+            spotLight.lookAt(scene.position);
+            scene.add(spotLight);
+
+            const geometry = new BoxBufferGeometry(1.0, 1.0, 1.0);
+            const material = new MeshStandardMaterial({ color: 0xff0000 });
+            const cube = new Mesh(geometry, material);
+            scene.add(cube);
+
+            camera.lookAt(cube.position);
+
+            update = () => {
+                cube.rotation.y += 0.05;
+                cube.rotation.x += 0.025;
+            }
+
+            ref.current = { geometry, material, update };
+        }
+
+        canvas.play(update);
+    }
+
+    useEffect(() => {
+        return () => {
+            if (ref.current) {
+                ref.material.dispose();
+                ref.geometry.dispose();
+                ref.current = null;
+            }
+        };
+    });
+
+    return (
+        <ThreeView
+            style={{
+                flexGrow: 1,
+            }}
+            onCreate={onCreate}
+        />
+    );
+}
+```
