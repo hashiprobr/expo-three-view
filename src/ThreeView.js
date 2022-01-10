@@ -31,14 +31,25 @@ export default function ThreeView(props) {
         frame: 0,
     });
 
+    function getSize(gl) {
+        const portrait = refs.width < refs.height;
+        const glWidth = gl.drawingBufferWidth;
+        const glHeight = gl.drawingBufferHeight;
+        if (portrait === glWidth < glHeight) {
+            return [glWidth, glHeight];
+        } else {
+            return [glHeight, glWidth];
+        }
+    }
+
     function updateCamera(aspect) {
         refs.camera.aspect = aspect;
         refs.camera.updateProjectionMatrix();
     }
 
-    function createRenderer(gl) {
-        refs.renderer = new Renderer({ gl });
-        refs.renderer.setSize(gl.drawingBufferWidth, gl.drawingBufferHeight);
+    function createRenderer(glWidth, glHeight) {
+        refs.renderer = new Renderer({ gl: refs.context });
+        refs.renderer.setSize(glWidth, glHeight);
         if (props.onCreate) {
             props.onCreate({
                 renderer: refs.renderer,
@@ -61,19 +72,14 @@ export default function ThreeView(props) {
     }
 
     function refresh() {
-        function renderImage() {
-            render();
-            refs.frame = 0;
-        }
-        if (!refs.frame) {
-            refs.frame = requestAnimationFrame(renderImage);
-        }
+        requestAnimationFrame(render);
+        requestAnimationFrame(render);
     }
 
     function play(update) {
         function renderFrame() {
-            update();
             render();
+            update();
             refs.frame = requestAnimationFrame(renderFrame);
         }
         if (refs.frame) {
@@ -114,6 +120,13 @@ export default function ThreeView(props) {
         }
     }
 
+    async function replaceContext(gl) {
+        [refs.context, gl] = [gl, refs.context];
+        if (gl) {
+            await destroyContext(gl);
+        }
+    }
+
     async function destroy() {
         destroyRenderer();
         const gl = refs.context;
@@ -136,15 +149,15 @@ export default function ThreeView(props) {
     }
 
     function rotate(translationX, translationY) {
-        const { relative, angle, unrotation } = refs.pan;
+        const { relative, angle, rotation } = refs.pan;
         const spherical = relative.clone();
         spherical.theta -= translationX * angle;
         spherical.phi -= translationY * angle;
         spherical.makeSafe();
         refs.camera.position.setFromSpherical(spherical)
-            .applyQuaternion(unrotation)
+            .applyQuaternion(rotation)
             .add(refs.target);
-        refs.camera.lookAt(refs.target);
+        refs.camera.peekAt(refs.target);
     }
 
     function zoom(forward) {
@@ -161,30 +174,29 @@ export default function ThreeView(props) {
         } else {
             refs.camera.position.sub(direction.normalize());
         }
-        refresh();
+        requestAnimationFrame(render);
     }
 
     function onPanStateChange({ nativeEvent }) {
         if (nativeEvent.state === State.BEGAN) {
-            const camera = refs.camera;
-            const vector = camera.position.clone().sub(refs.target);
-            const rotation = new Quaternion();
-            const pan = {
-                modifier: null,
-                absolute: camera.position.clone(),
-                target: refs.target.clone(),
+            const vector = refs.camera.position.clone();
+            const unrotation = new Quaternion();
+            refs.pan = {
+                relative: new Spherical(),
                 baseX: new Vector3(1, 0, 0),
                 baseY: new Vector3(0, 1, 0),
-                relative: new Spherical(),
             };
-            rotation.setFromUnitVectors(camera.up, pan.baseY);
-            pan.baseX.applyQuaternion(camera.quaternion);
-            pan.baseY.applyQuaternion(camera.quaternion);
-            pan.relative.setFromVector3(vector.applyQuaternion(rotation));
-            pan.scale = pan.relative.radius / refs.height;
-            pan.angle = Math.PI / refs.height;
-            pan.unrotation = rotation.invert();
-            refs.pan = pan;
+            vector.sub(refs.target);
+            unrotation.setFromUnitVectors(refs.camera.up, refs.pan.baseY);
+            refs.pan.relative.setFromVector3(vector.applyQuaternion(unrotation));
+            refs.pan.angle = Math.PI / refs.height;
+            refs.pan.rotation = unrotation.invert();
+            refs.pan.absolute = refs.camera.position.clone();
+            refs.pan.target = refs.target.clone();
+            refs.pan.baseX.applyQuaternion(refs.camera.quaternion);
+            refs.pan.baseY.applyQuaternion(refs.camera.quaternion);
+            refs.pan.scale = refs.pan.relative.radius / refs.height;
+            refs.pan.modifier = null;
         }
     }
 
@@ -199,7 +211,7 @@ export default function ThreeView(props) {
             } else {
                 rotate(translationX, translationY);
             }
-            refresh();
+            requestAnimationFrame(render);
         }
     }
 
@@ -229,18 +241,18 @@ export default function ThreeView(props) {
             if (refs.width > 0 && refs.height > 0) {
                 const gl = refs.context;
                 if (gl) {
-                    updateCamera(gl.drawingBufferWidth / gl.drawingBufferHeight);
-                    if (refs.renderer) {
-                        refs.renderer.setSize(gl.drawingBufferWidth, gl.drawingBufferHeight);
-                        if (props.onResize) {
-                            props.onResize({
-                                width: refs.width,
-                                height: refs.height,
-                            });
+                    requestAnimationFrame(() => {
+                        const [glWidth, glHeight] = getSize(gl);
+                        updateCamera(glWidth / glHeight);
+                        if (refs.renderer) {
+                            refs.renderer.setSize(glWidth, glHeight);
+                            if (props.onResize) {
+                                props.onResize();
+                            }
+                        } else {
+                            createRenderer(glWidth, glHeight);
                         }
-                    } else {
-                        createRenderer(gl);
-                    }
+                    });
                 }
             } else {
                 destroyRenderer();
@@ -255,18 +267,20 @@ export default function ThreeView(props) {
         if (refs.context !== gl) {
             if (gl) {
                 if (refs.width > 0 && refs.height > 0) {
-                    updateCamera(gl.drawingBufferWidth / gl.drawingBufferHeight);
-                    if (refs.renderer) {
-                        disposeRenderer();
-                    }
-                    createRenderer(gl);
+                    requestAnimationFrame(() => {
+                        const [glWidth, glHeight] = getSize(gl);
+                        updateCamera(glWidth / glHeight);
+                        if (refs.renderer) {
+                            disposeRenderer();
+                        }
+                        await replaceContext(gl);
+                        createRenderer(glWidth, glHeight);
+                    });
+                } else {
+                    await replaceContext(gl);
                 }
             } else {
-                destroyRenderer();
-            }
-            [refs.context, gl] = [gl, refs.context];
-            if (gl) {
-                await destroyContext(gl);
+                await destroy();
             }
         }
     }

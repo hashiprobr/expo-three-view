@@ -6,8 +6,12 @@ export default class Camera extends PerspectiveCamera {
         this.target = target;
     }
 
-    lookAt(x, y, z) {
+    peekAt(x, y, z) {
         super.lookAt(x, y, z);
+    }
+
+    lookAt(x, y, z) {
+        this.peekAt(x, y, z);
         if (x.isVector3) {
             this.target.copy(x);
         } else {
