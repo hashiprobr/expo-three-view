@@ -1,7 +1,14 @@
 expo-three-view
 ===============
 
-**An Expo Component for Three.js visualization with auto-resizing and built-in orbit controls**
+**An Expo Component for Three.js visualization with auto-resizing and built-in
+orbit controls**
+
+* *rotate:* drag (all platforms);
+
+* *rotate:* drag with two fingers (Android or iOS) or shift (web);
+
+* *zoom:* pinch (Android or iOS) and mouse wheel (web).
 
 
 Peer dependencies
@@ -125,8 +132,8 @@ onDispose
 ---------
 
 This function is called whenever the renderer is disposed. This happens either
-during unmount or when the context is recreated for whatever reason. The most
-common usage is executing clean up tasks.
+on unmount or when the context is recreated for whatever reason. The most common
+usage is executing clean up tasks.
 
 
 Example
