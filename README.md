@@ -6,7 +6,7 @@ auto-resizing and built-in orbit controls**
 
 The `ThreeView` component simplifies the usage of
 [Three.js](https://threejs.org/) for simple 3D visualization. It automatically
-ajusts the camera aspect and context dimensions on resize and offers orbit
+adjusts the camera aspect and context dimensions on resize and offers orbit
 controls out of the box:
 
 * *rotate:* drag with one finger (Android or iOS) or mouse (web);
