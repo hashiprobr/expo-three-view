@@ -1,6 +1,6 @@
 {
   "name": "@hashiprobr/expo-three-view",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "An Expo Component for Three.js visualization with auto-resizing and built-in orbit controls",
   "keywords": [
     "JavaScript",
@@ -28,15 +28,15 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "peerDependencies": {
-    "@hashiprobr/react-use-mount-and-update": "^1.0.4",
-    "@hashiprobr/react-use-refs": "^1.0.10",
-    "expo": "^43.0.5",
-    "expo-gl": "^11.0.3",
-    "expo-three": "^6.0.1",
-    "react": "^17.0.1",
-    "react-native": ">=0.64.3",
-    "react-native-gesture-handler": "^1.10.2",
-    "react-native-reanimated": "^2.2.0",
-    "three": ">=0.136.0"
+    "@hashiprobr/react-use-mount-and-update": "1.0.5",
+    "@hashiprobr/react-use-refs": "1.0.12",
+    "expo": "45.0.0",
+    "expo-gl": "11.3.0",
+    "expo-three": "6.1.0",
+    "react": "17.0.2",
+    "react-native": "0.68.2",
+    "react-native-gesture-handler": "2.2.1",
+    "react-native-reanimated": "2.8.0",
+    "three": "0.142.0"
   }
 }
