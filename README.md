@@ -1,6 +1,8 @@
 expo-three-view
 ===============
 
+[PROJECT DISCONTINUED]
+
 **An Expo Component for [Three.js](https://threejs.org/) visualization with
 auto-resizing and built-in orbit controls**
 
